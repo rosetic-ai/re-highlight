@@ -324,8 +324,8 @@ class Highlight {
       return top;
     }
 
-    Mode? endOfMode(Mode mode, EnhancedMatch match, String matchPlusRemainder) {
-      bool matched = mode.endRe != null && matchPlusRemainder.startsWith(mode.endRe!);
+    Mode? endOfMode(Mode mode, EnhancedMatch match) {
+      bool matched = mode.endRe != null && codeToHighlight.startsWith(mode.endRe!, match.start);
       if (matched) {
         if (mode.onEnd != null) {
           final ModeCallbackResponse resp = ModeCallbackResponse(mode);
@@ -345,7 +345,7 @@ class Highlight {
       // even if on:end fires an `ignore` it's still possible
       // that we might trigger the end node because of a parent mode
       if (mode.endsWithParent == true) {
-        return endOfMode(mode.parent!, match, matchPlusRemainder);
+        return endOfMode(mode.parent!, match);
       }
       return null;
     }
@@ -404,9 +404,7 @@ class Highlight {
     /// Handle the potential end of mode
     int doEndMatch(EnhancedMatch match) {
       final String lexeme = match[0]!;
-      final String matchPlusRemainder = codeToHighlight.substring(match.start);
-
-      final Mode? endMode = endOfMode(top, match, matchPlusRemainder);
+      final Mode? endMode = endOfMode(top, match);
       if (endMode == null) {
         return _kNoMatch;
       }
