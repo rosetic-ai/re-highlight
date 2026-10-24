@@ -230,6 +230,8 @@ class _MultiRegex {
   int position;
   int? lastIndex;
   _MatcherRe? matcherRe;
+  List<int> _ruleStarts = const [];
+  int? _groupCount;
 
   _MultiRegex(this.language) :
     matchIndexes = {},
@@ -250,6 +252,7 @@ class _MultiRegex {
     List<String> terminators = regexes.map((e) => e.last).cast<String>().toList();
     matcherRe = _MatcherRe(_langRe(language, _rewriteBackreferences(terminators, joinWith: '|'), true));
     lastIndex = 0;
+    _ruleStarts = matchIndexes.keys.toList();
   }
 
   EnhancedMatch? exec(s) {
@@ -261,16 +264,23 @@ class _MultiRegex {
     if (match == null) {
       return null;
     }
-    int index = 1;
-    for (; index <= match.groupCount; index++) {
-      if (match[index] != null) {
+    // Every group access on a RegExpMatch bounds-checks through a native
+    // groupCount call, so only probe each rule's outer group. Groups of the
+    // rules that did not match are always null.
+    final int groupCount = _groupCount ??= match.groupCount;
+    int index = groupCount + 1;
+    int next = groupCount + 1;
+    for (int i = 0; i < _ruleStarts.length; i++) {
+      if (match[_ruleStarts[i]] != null) {
+        index = _ruleStarts[i];
+        next = i + 1 < _ruleStarts.length ? _ruleStarts[i + 1] : groupCount + 1;
         break;
       }
     }
-    List<String?> matches = [];
-    for (int i = index; i <= match.groupCount; i++) {
-      matches.add(match[i]);
-    }
+    final List<String?> matches = [
+      for (int i = index; i < next; i++) match[i],
+      for (int i = next; i <= groupCount; i++) null,
+    ];
     _RegexOption option = matchIndexes[index]!;
     return EnhancedMatch(
       match: matches,
