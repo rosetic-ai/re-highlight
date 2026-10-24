@@ -1254,7 +1254,7 @@ final langCsharp = Mode(
       Mode(
           className: 'function',
           begin:
-              "([a-zA-Z]\\w*(<[a-zA-Z]\\w*(\\s*,\\s*[a-zA-Z]\\w*)*>)?(\\[\\])?\\s+)+[a-zA-Z]\\w*\\s*(<[^=]+>\\s*)?\\(",
+              "(?<![a-zA-Z])([a-zA-Z]\\w*(<[a-zA-Z]\\w*(\\s*,\\s*[a-zA-Z]\\w*)*>)?(\\[\\])?\\s+)+[a-zA-Z]\\w*\\s*(<[^=]+>\\s*)?\\(",
           returnBegin: true,
           end: "\\s*[{;=]",
           excludeEnd: true,
